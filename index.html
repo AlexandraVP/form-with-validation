@@ -1,0 +1,251 @@
+<html>
+<head>
+<style>
+
+    * {
+	    box-sizing: border-box;
+	}
+
+   .background{
+       filter: grayscale(100%) blur(4px);
+	   position: fixed;
+	   z-index: -1;
+	   height: 100%;
+   }
+   
+   .container{
+       display: flex;
+	   align-items: center;
+	   justify-content: center;
+   }
+   
+   .dark{
+       background: #000;
+   }
+   
+   .form{
+       color: #fff;
+	   font-size: 16px;
+	   font-weight: 600;
+       padding: 5px;
+       width: 800px;
+	   border-radius: 4px;
+	   background: rgba(0,0,0,0.6);
+	   display: flex;
+	   flex-direction: column;
+	   align-items: center;
+   }
+   
+   .row{
+       position: relative;
+       padding: 5px 0px;
+       display: flex;
+	   flex-direction: row;
+	   align-items: center;
+	   justify-content: center;
+   }
+   
+   .group{
+       display: flex;
+	   flex-direction: row;
+	   align-items: center;
+	   justify-content: center;
+   }
+   
+   .row-aside{
+       width: 400px;
+       justify-content: space-between;
+   }
+   
+   .heading{
+	   font-size: 22px;
+	   text-transform: uppercase;
+	   font-weight: 900;
+   }
+   
+   .input-short{
+      width: 86px;
+   }
+   
+   .search-button{
+       margin-left: auto;
+       padding: 10px 20px;
+	   border-radius: 10px;
+	   font-size: 20px;
+	   text-transform: uppercase;
+	   font-weight: 900;
+	   background: #0062cc;
+	   color: #fff;
+	   cursor: pointer;
+   }
+   
+   .search-button:hover{
+       background-color: #0069d9;
+   }
+   
+   .error{
+       position: absolute;
+	   color: red;
+	   left: 101%;
+	   width: 195px;
+	   font-size: 12px;
+   }
+   
+</style>
+</head>
+<body class="container dark">
+    <image src="https://nhl.bamcontent.com/images/photos/287776878/3000x1400/cut.jpg" class="background"> </image>
+    <div class="form" id="form">
+	    <div class="row">
+	        <span class="heading">Search for hockey player</span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Name:</span>
+			<input type="text" id="player-name">
+			<span class="error" id="player-name-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Jersey:</span>
+			<input type="number" id="player-jersey">
+			<span class="error" id="player-jersey-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Weight:</span>
+			<div class="group">
+			     <input type="number" id="player-weight-from" class="input-short">
+			     <input type="number" id="player-weight-to" class="input-short">
+			</div>
+			<span class="error" id="player-weight-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Height:</span>
+			<div class="group">
+			     <input type="number" id="player-height-from" class="input-short">
+			     <input type="number" id="player-height-to" class="input-short">
+			</div>
+			<span class="error" id="player-height-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Age:</span>
+			<div class="group">
+			     <input type="number" id="player-age-from" class="input-short">
+			     <input type="number" id="player-age-to" class="input-short">
+			</div>
+			<span class="error" id="player-age-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <span class="label">Gender:</span>
+			<div class="group">
+			     <span class="label">Male</span> 
+			     <input name="gender" type="radio" id="player-gender-male">
+				 <span class="label">Female</span> 
+			     <input  name="gender"  type="radio" id="player-gender-female">
+			</div>
+			<span class="error" id="player-gender-error"></span>
+		</div>
+		<div class="row row-aside">
+		    <div class="search-button" id="search-button">SEARCH</div> 
+		</div>
+	</div>
+<script>
+
+const inputs = [...document.getElementById("form").querySelectorAll('input')];
+const formInputs = inputs.reduce((a, e) => {
+    return Object.assign({}, a, {[e.id]: e});
+}, {});
+
+const errors = [...document.getElementById("form").querySelectorAll('.error')];
+const formErrors = errors.reduce((a, e) => {
+    return Object.assign({}, a, {[e.id]: e});
+}, {});
+
+const submitButton = document.getElementById('search-button');
+
+function getNameValidationError(name){
+    if(name.length < 3){
+	    return "name should inlude at least 3 characters";
+	}
+	if(!(/^[a-zA-z\s]+$/.test(name))){
+	    return "name should include only latin letters";
+	}
+	return "";
+}
+
+function getJerseyValidationError(jersey){
+    if(isNaN(jersey)){
+	    return "jersey is required";
+	}
+    if(jersey < 1){
+	     return "jersey should be greater than 0";
+	}
+	if(jersey > 99){
+	    return "jersey should be less than 100";
+	}
+	return "";
+}
+
+function getRangeValidationError(from, to, metric){
+    if(isNaN(from)){
+	    return `'${metric} from' is required`;
+	}
+	if(isNaN(to)){
+	    return `'${metric} to' is required`;
+	}
+    if(from > to){
+	    return `'${metric} to' should be greater than '${metric} from'`;
+	}
+	if(from < 0){
+	    return `${metric} should be positive`;
+	}
+	return "";
+}
+
+function getGenderValidationError(isMale, isFemale){
+    if(!isMale && !isFemale){
+	    return "gender should be selected";
+	}
+	return "";
+}
+
+function validateForm(){
+
+        const name = formInputs['player-name'].value;
+	const nameValidationError = getNameValidationError(name);
+	formErrors['player-name-error'].textContent = nameValidationError;
+	
+	const jersey = parseInt(formInputs['player-jersey'].value);
+	const jerseyValidationError = getJerseyValidationError(jersey);
+	formErrors['player-jersey-error'].textContent = jerseyValidationError;
+	
+	const weightFrom = parseInt(formInputs['player-weight-from'].value);
+	const weightTo = parseInt(formInputs['player-weight-to'].value);
+	const weightValidationError = getRangeValidationError(weightFrom, weightTo, "weight");
+	formErrors['player-weight-error'].textContent = weightValidationError;
+	
+	const heightFrom = parseInt(formInputs['player-height-from'].value);
+	const heightTo = parseInt(formInputs['player-height-to'].value);
+	const heightValidationError = getRangeValidationError(heightFrom, heightTo, "height");
+	formErrors['player-height-error'].textContent = heightValidationError;
+	
+	const ageFrom = parseInt(formInputs['player-age-from'].value);
+	const ageTo = parseInt(formInputs['player-age-to'].value);
+	const ageValidationError = getRangeValidationError(ageFrom, ageTo, "age");
+	formErrors['player-age-error'].textContent = ageValidationError;
+	
+	const isMale = formInputs['player-gender-male'].checked;
+	const isFemale = formInputs['player-gender-female'].checked;
+	const genderValidationError = getGenderValidationError(isMale, isFemale);
+	formErrors['player-gender-error'].textContent = genderValidationError;
+	
+	if(!nameValidationError && !jerseyValidationError && !weightValidationError
+	   && !heightValidationError && !ageValidationError && !genderValidationError){
+	    alert("Sorry backend is not implemented yet :)");   
+	}
+}
+
+
+submitButton.addEventListener('click', validateForm);
+
+</script>
+</body>
+</html>
